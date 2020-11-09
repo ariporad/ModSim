@@ -1,16 +1,24 @@
-function [T, Y] = house_simulate(t_0, t_f, Y0)
+function [T, Y] = house_simulate(timespan, height_aperture, width_aperture, area_floor, thickness_floor, thickness_insulation)
     %% Parameters (here for now)
-    area_aperture = 0; % Total aerture area;
-    area_floor = 0; % Total house floor area
-    dimension1_floor = 0; % One dimension for the floor/house; Other one is derived by dividing area
-    thickness_floor = 0; % Thickness of thermal mass floor slab
-    thickness_insulation = 0; % Thickness of wall/all? insulation
-    height_house = 0; % Height of house
+    % area_aperture = 0; % Total aperture area
+    % area_floor = 0; % Total house floor area
+    % dimension1_floor = 0; % One dimension for the floor/house; Other one is derived by dividing area
+    % thickness_floor = 0; % Thickness of thermal mass floor slab
+    % thickness_insulation = 0; % Thickness of wall/all? insulation
+    % height_house = 0; % Height of house
+
+    %% Location Parameters
+    % These are currently set to Olin College
+    latitude = 42.2930; % deg
+    longitude = -71.2638; % deg
+    utc_offset = -5; % hours, EST
 
     % Calculate other parameters
-    dimension2_floor = area_floor / dimension1_floor;
-    area_wall = (2 * (dimension1_floor + dimension2_floor) * height_house) - ...
-        area_aperture;
+    width_floor = width_aperture; % stupid now, but possibly more complicated later on
+    depth_floor = area_floor / width_floor;
+    area_aperture = height_aperture * width_aperture;
+    height_house = height_aperture; % stupid now, but possible more complicated later on
+    area_wall = (2 * (width_floor + depth_floor) * height_house) - area_aperture;
 
     %% Material constants
     % Wall is made entirely of insulation urethane foam
@@ -28,7 +36,7 @@ function [T, Y] = house_simulate(t_0, t_f, Y0)
 
     % Specific heat                         (J / kg * K)
     c_air = 0.718; % https://www.ohio.edu/mechanical/thermo/property_tables/air/air_cp_cv.html
-    c_floor = 0.96 / 1000; % kJ/(kg k) converted to Joules, engineeringtoolbox.com
+    c_floor = 960; % J/(kg * K) engineeringtoolbox.com
 
     % Emissivity                            (unitless)
     e_floor = 0.85; % engineeringtoolbox.com
@@ -46,10 +54,8 @@ function [T, Y] = house_simulate(t_0, t_f, Y0)
     T_air_external = 291; % K
     T_ground = 285; % K
 
-    I_insolation = 0; % Research
-
-    % Calculate other environmental constants
-    area_insolation = 1234; % Call area angle calculator
+    % pveducation.org
+    I_insolation = 500; % w / m^2
 
     %% Calculate thermal resistances
     % Thermal resistance from floor (thermal mass) to air inside
@@ -62,34 +68,50 @@ function [T, Y] = house_simulate(t_0, t_f, Y0)
     R_air_to_air = 1/(...
         1/(2 * (1/(h_air * area_wall)) + thickness_insulation/(area_wall * k_insulation)) + ... 
         1/(2 * (1/(h_air * area_aperture)) + thickness_insulation/(area_aperture * k_aperture)));
+    
+    %% Initial State Values
+    % Temperature of the internal air starts at the temperature of the external air (which is absurd)
+    U_air_internal_0 = T_air_external * mass_air_internal * c_air;
+    % Temperature of the floor starts at the temperature of the ground (which is also absurd)
+    U_floor_0 = T_air_external * mass_floor * c_floor;
 
-    %% ode45 wrapper
-    v_timespan = [t_0 t_f];
-
-    [T, Y] = ode45(@rate_func, v_timespan, Y0);
+    %% ode45
+    [T, Y_U] = ode45(@rate_func, timespan, [U_air_internal_0, U_floor_0]);
 
     %% Rate function
-        function rates = rate_func(states)
-            %% Data preprocessing
-            U_air_internal = states(1);
-            U_floor = states(2);
+    function rates = rate_func(time, states)
+        %% Calculate time-specific environmental constants
+        solar_elev = calculate_solar_elev(time, latitude, longitude, utc_offset);
+        % FIXME: this actually needs to be adjusted to take into account the aperture, but that's V2
+        unangled_area_insolation = width_floor * depth_floor;
+        area_insolation = sind(solar_elev) * unangled_area_insolation; % Call area angle calculator
 
-            T_air_internal = U_air_internal / (mass_air_internal * c_air);
-            T_floor = U_floor / (mass_floor * c_floor);
 
-            %% Calculate energy flows
-            dUdt_floor_to_air = (T_air_internal - T_floor) / R_floor_to_air;
+        %% Data preprocessing
+        U_air_internal = states(1);
+        U_floor = states(2);
 
-            dUdt_floor_to_ground = (T_ground - T_floor) / R_floor_to_ground;
+        T_air_internal = U_air_internal / (mass_air_internal * c_air);
+        T_floor = U_floor / (mass_floor * c_floor);
 
-            dUdt_air_to_air = (T_air_external - T_air_internal) / R_air_to_air;
+        %% Calculate energy flows
+        dUdt_floor_to_air = -(T_air_internal - T_floor) / R_floor_to_air;
 
-            dUdt_insolation = e_floor * I_insolation * area_insolation;
+        dUdt_floor_to_ground = -(T_ground - T_floor) / R_floor_to_ground;
 
-            %% Calculate final total stock flows
-            dUdt_floor = dUdt_insolation - dUdt_floor_to_air - dUdt_floor_to_ground;
-            dUdt_air_internal = dUdt_floor_to_air - dUdt_air_to_air;
+        dUdt_air_to_air = -(T_air_external - T_air_internal) / R_air_to_air;
 
-            rates = [dUdt_air_internal; dUdt_floor];
-        end
+        dUdt_insolation = e_floor * I_insolation * area_insolation;
+
+        %% Calculate final total stock flows
+        dUdt_floor = dUdt_insolation - dUdt_floor_to_air - dUdt_floor_to_ground;
+        dUdt_air_internal = dUdt_floor_to_air - dUdt_air_to_air;
+
+        rates = [dUdt_air_internal; dUdt_floor];
+    end
+
+    all_air_U = Y_U(:, 1);
+    all_floor_U = Y_U(:, 2);
+    
+    Y = [all_air_U / (mass_air_internal * c_air), all_floor_U / (mass_floor * c_floor)];
 end
