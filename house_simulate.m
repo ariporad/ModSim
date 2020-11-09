@@ -84,9 +84,9 @@ function [T, Y, debug] = house_simulate(timespan, height_aperture, width_apertur
     function rates = rate_func(time, states)
         %% Calculate time-specific environmental constants
         solar_elev = calculate_solar_elev(time, latitude, longitude, utc_offset);
-        % FIXME: this actually needs to be adjusted to take into account the aperture, but that's V2
+        % calculate the projection of the sun through the aperture
         unangled_area_insolation = width_floor * depth_floor;
-        area_insolation = sind(solar_elev) * unangled_area_insolation; % Call area angle calculator
+        area_insolation = cosd(solar_elev) * sind(solar_elev) * unangled_area_insolation;
 
 
         %% Data preprocessing
