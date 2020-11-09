@@ -1,4 +1,4 @@
-function [T, Y] = house_simulate(timespan, height_aperture, width_aperture, area_floor, thickness_floor, thickness_insulation)
+function [T, Y, debug] = house_simulate(timespan, height_aperture, width_aperture, area_floor, thickness_floor, thickness_insulation)
     %% Parameters (here for now)
     % area_aperture = 0; % Total aperture area
     % area_floor = 0; % Total house floor area
@@ -6,6 +6,8 @@ function [T, Y] = house_simulate(timespan, height_aperture, width_aperture, area
     % thickness_floor = 0; % Thickness of thermal mass floor slab
     % thickness_insulation = 0; % Thickness of wall/all? insulation
     % height_house = 0; % Height of house
+    
+    debug = [0, 0, 0, 0];
 
     %% Location Parameters
     % These are currently set to Olin College
@@ -35,7 +37,7 @@ function [T, Y] = house_simulate(timespan, height_aperture, width_aperture, area
     h_air = 10; % 
 
     % Specific heat                         (J / kg * K)
-    c_air = 0.718; % https://www.ohio.edu/mechanical/thermo/property_tables/air/air_cp_cv.html
+    c_air = 718; % https://www.ohio.edu/mechanical/thermo/property_tables/air/air_cp_cv.html
     c_floor = 960; % J/(kg * K) engineeringtoolbox.com
 
     % Emissivity                            (unitless)
@@ -103,6 +105,8 @@ function [T, Y] = house_simulate(timespan, height_aperture, width_aperture, area
 
         dUdt_insolation = e_floor * I_insolation * area_insolation;
 
+        debug(end + 1, :) = [dUdt_floor_to_air, dUdt_floor_to_ground, dUdt_air_to_air, dUdt_insolation];
+        
         %% Calculate final total stock flows
         dUdt_floor = dUdt_insolation - dUdt_floor_to_air - dUdt_floor_to_ground;
         dUdt_air_internal = dUdt_floor_to_air - dUdt_air_to_air;
