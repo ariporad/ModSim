@@ -20,15 +20,15 @@
 %	- https://www.ncdc.noaa.gov/gridsat/docs/Angle_Calculations.pdf (less helpful than it looks)
 %
 % SEE ALSO: calculators for validating--won't line up exactly because it's an approximation
-%	- https://www.esrl.noaa.gov/gmd/grad/solcalc/calcdetails.html
+%	- https://www.esrl.noaa.gov/gmd/grad/solcalc/calcdetails.
 %	- https://www.esrl.noaa.gov/gmd/grad/antuv/SolarCalc.jsp
 function elev = calculate_solar_elev(seconds, lat, long, utc_offset)
 	SECONDS_PER_DAY = 60 * 60 * 24;
 
-	day_of_year = ceil(seconds / SECONDS_PER_DAY) % days (day of year)
-	fractional_time = mod(seconds, SECONDS_PER_DAY) / 3600 % hours (time of day as fractional hours)
+	day_of_year = ceil(seconds / SECONDS_PER_DAY); % days (day of year)
+	fractional_time = mod(seconds, SECONDS_PER_DAY) / 3600; % hours (time of day as fractional hours)
 
-	hour_angle = calculate_hour_angle(lat, long, day_of_year, fractional_time, utc_offset)
+	hour_angle = calculate_hour_angle(lat, long, day_of_year, fractional_time, utc_offset);
 
 	% (Solar) Declination is a representation of the tilt of the Earth and how it affects the
 	% position of the Sun. (I'm not sure of the exact details.)
@@ -39,14 +39,14 @@ function elev = calculate_solar_elev(seconds, lat, long, utc_offset)
 
 	% declination = -23.45 * cosd((360 * day_of_year / 365) + (3600 / 365)) % Original
 	% declination = -23.44 * cosd(360/365 * (day_of_year + 10)) % Lila
-	declination = -23.45 * sind((360/365) * (284 + day_of_year)) % Paper
+	declination = -23.45 * sind((360/365) * (284 + day_of_year)); % Paper
 
 	% Solar Elevation: the elevation of the sun relative to the horizon. If this is 90deg, then a
 	% vertical stick won't cast a shadow.
 	elev = acosd( ... % deg
 		(sind(lat) * sind(declination)) + ...
 		(cosd(lat) * cosd(declination) * cosd(hour_angle)) ...
-	)
+	);
 end
 
 % Calculate the hour angle, which is a value used in computing the elevation of the sun.
@@ -55,10 +55,10 @@ function hra = calculate_hour_angle(lat, long, day_of_year, local_time, utc_offs
 	% Meridian (longitude) of the local time zone
 	% NOTE: this is going to have edge case related bugs around the international date line (in
 	%       particular, for timezones with greater than 12h offsets).
-	local_standard_time_meridian = 15 * utc_offset % deg
+	local_standard_time_meridian = 15 * utc_offset; % deg
 
 	% Not sure exactly what this is, but it's used to calculate equation_of_time
-	unknown_eot_value = (360 / 365) * (day_of_year - 81) % deg
+	unknown_eot_value = (360 / 365) * (day_of_year - 81); % deg
 
 	% "Equation of Time" (not my name) is a number used to correct for solar time's variation across
 	% the year.
@@ -67,12 +67,12 @@ function hra = calculate_hour_angle(lat, long, day_of_year, local_time, utc_offs
 	% testing, this inaccuracy is not significant enough to be an issue.
 	equation_of_time = ... % unitless?
 		(9.87 * sind(2 * unknown_eot_value)) - ...
-		(7.53 * cosd(unknown_eot_value)) - (1.5 * sind(unknown_eot_value)) 
+		(7.53 * cosd(unknown_eot_value)) - (1.5 * sind(unknown_eot_value)); 
 
 	% Now, we can adjust the local time to local solar time
-	time_correction = 4 * (long - local_standard_time_meridian) + equation_of_time % min
-	local_solar_time = local_time + (time_correction / 60) % hours
+	time_correction = 4 * (long - local_standard_time_meridian) + equation_of_time; % min
+	local_solar_time = local_time + (time_correction / 60); % hours
 
 	% Finally, we can compute the hour angle
-	hra = 15 * (local_solar_time - 12) % deg, negative in AM and positive in PM
+	hra = 15 * (local_solar_time - 12); % deg, negative in AM and positive in PM
 end
