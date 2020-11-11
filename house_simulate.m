@@ -7,7 +7,7 @@ function [T, Y, debug] = house_simulate(timespan, height_aperture, width_apertur
     % thickness_insulation = 0; % Thickness of wall/all? insulation
     % height_house = 0; % Height of house
     
-    debug = [0, 0, 0, 0, 0];
+    debug = [0, 0, 0, 0, 0, 0, 0];
 
     %% Location Parameters
     % These are currently set to Olin College
@@ -53,7 +53,8 @@ function [T, Y, debug] = house_simulate(timespan, height_aperture, width_apertur
 
     %% Environment constants
     % T_air_external is a function of time, so calculated in rate_func
-    T_ground = 285; % K
+    %T_ground = 285; % K
+    [T_air_external_0, T_ground_0] = calculate_temp(timespan(1));
 
     % pveducation.org
     I_insolation = 500; % w / m^2
@@ -72,10 +73,13 @@ function [T, Y, debug] = house_simulate(timespan, height_aperture, width_apertur
     
     %% Initial State Values
     % Temperature of the internal air starts at the temperature of the external air (which is absurd)
-    U_air_internal_0 = calculate_temp(timespan(1)) * mass_air_internal * c_air;
+    U_air_internal_0 = T_air_external_0 * mass_air_internal * c_air;
     % Temperature of the floor starts at the temperature of the ground (which is also absurd)
-    U_floor_0 = calculate_temp(timespan(1)) * mass_floor * c_floor;
-
+    U_floor_0 = T_ground_0 * mass_floor * c_floor;
+    
+    debug(1, 6) = U_air_internal_0;
+    debug(1, 7) = T_ground_0;
+    
     %% ode45
     [T, Y_U] = ode45(@rate_func, timespan, [U_air_internal_0, U_floor_0], odeset('MaxStep', max_time_step));
 
@@ -83,12 +87,11 @@ function [T, Y, debug] = house_simulate(timespan, height_aperture, width_apertur
     function rates = rate_func(time, states)
         %% Calculate time-specific environmental constants
         solar_elev = calculate_solar_elev(time, latitude, longitude, utc_offset);
-        T_air_external = calculate_temp(time);
+        [T_air_external, T_ground] = calculate_temp(time);
         
         % calculate the projection of the sun through the aperture
         unangled_area_insolation = width_floor * depth_floor;
         area_insolation = max(0, cosd(solar_elev) * sind(solar_elev) * unangled_area_insolation);
-
 
         %% Data preprocessing
         U_air_internal = states(1);
@@ -106,7 +109,7 @@ function [T, Y, debug] = house_simulate(timespan, height_aperture, width_apertur
 
         dUdt_insolation = e_floor * I_insolation * area_insolation;
 
-        debug(end + 1, :) = [time, dUdt_floor_to_air, dUdt_floor_to_ground, dUdt_air_to_air, dUdt_insolation];
+        debug(end + 1, :) = [time, dUdt_floor_to_air, dUdt_floor_to_ground, dUdt_air_to_air, dUdt_insolation, T_air_external, T_ground];
         
         %% Calculate final total stock flows
         dUdt_floor = dUdt_insolation - dUdt_floor_to_air - dUdt_floor_to_ground;
