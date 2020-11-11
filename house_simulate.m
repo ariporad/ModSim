@@ -1,4 +1,4 @@
-function [T, Y, debug] = house_simulate(timespan, height_aperture, width_aperture, area_floor, thickness_floor, thickness_insulation, max_time_step)
+function [T, Y, debug] = house_simulate(timespan, max_timestep, height_aperture, width_aperture, area_floor, thickness_floor, thickness_insulation)
     %% Parameters (here for now)
     % area_aperture = 0; % Total aperture area
     % area_floor = 0; % Total house floor area
@@ -81,7 +81,7 @@ function [T, Y, debug] = house_simulate(timespan, height_aperture, width_apertur
     debug(1, 7) = T_ground_0;
     
     %% ode45
-    [T, Y_U] = ode45(@rate_func, timespan, [U_air_internal_0, U_floor_0], odeset('MaxStep', max_time_step));
+    [T, Y_U] = ode45(@rate_func, timespan, [U_air_internal_0, U_floor_0], odeset('MaxStep', max_timestep));
 
     %% Rate function
     function rates = rate_func(time, states)
