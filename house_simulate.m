@@ -81,7 +81,7 @@ function [T, Y, debug] = house_simulate(timespan, max_timestep, height_aperture,
     debug(1, 7) = T_ground_0;
     
     %% ode45
-    [T, Y_U] = ode45(@rate_func, timespan, [U_air_internal_0, U_floor_0], odeset('MaxStep', max_timestep));
+    [T, Y_U] = ode45(@rate_func, timespan, [U_air_internal_0, U_floor_0]); %, odeset('MaxStep', max_timestep));
 
     %% Rate function
     function rates = rate_func(time, states)
