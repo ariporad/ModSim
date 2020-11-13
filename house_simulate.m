@@ -1,12 +1,7 @@
 function [T, Y, debug] = house_simulate(timespan, max_timestep, height_aperture, width_aperture, area_floor, thickness_floor, thickness_insulation)
-    %% Parameters (here for now)
-    % area_aperture = 0; % Total aperture area
-    % area_floor = 0; % Total house floor area
-    % dimension1_floor = 0; % One dimension for the floor/house; Other one is derived by dividing area
-    % thickness_floor = 0; % Thickness of thermal mass floor slab
-    % thickness_insulation = 0; % Thickness of wall/all? insulation
-    % height_house = 0; % Height of house
-    
+    % The `debug` matrix has one row per call to rate_func, with the
+    % columns as specified on Line 107. The first row (all zeros) is
+    % dropped at the end of the function.
     debug = [0, 0, 0, 0, 0, 0, 0];
 
     %% Location Parameters
@@ -29,7 +24,6 @@ function [T, Y, debug] = house_simulate(timespan, max_timestep, height_aperture,
 
     % Thermal conductivity                  (W / m * K)
     % All values from https://www.engineeringtoolbox.com/thermal-conductivity-d_429.html
-    k_floor = 1; % 1.0 - 1.8 for heavy concrete
     k_insulation = 0.5; % 0.03; % Research
     k_aperture = 0.05; % 1.05 for normal glass, 0.05 for insulating glass
 
@@ -111,7 +105,7 @@ function [T, Y, debug] = house_simulate(timespan, max_timestep, height_aperture,
 
         dUdt_insolation = e_floor * I_insolation * area_insolation;
 
-        debug(end + 1, :) = [time, dUdt_floor_to_air, dUdt_floor_to_ground, dUdt_air_to_air, dUdt_insolation, T_air_external, T_ground];
+        %debug(end + 1, :) = [time, dUdt_floor_to_air, dUdt_floor_to_ground, dUdt_air_to_air, dUdt_insolation, T_air_external, T_ground];
         
         %% Calculate final total stock flows
         dUdt_floor = dUdt_insolation - dUdt_floor_to_air - dUdt_floor_to_ground;
