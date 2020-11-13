@@ -1,4 +1,4 @@
-function [T, Y, debug] = house_simulate(timespan, height_aperture, width_aperture, area_floor, thickness_floor, thickness_insulation)
+function [T, Y, debug] = house_simulate(timespan, max_step, height_aperture, width_aperture, area_floor, thickness_floor, thickness_insulation)
     % The `debug` matrix has one row per call to rate_func, with the
     % columns as specified on Line 107. The first row (all zeros) is
     % dropped at the end of the function.
