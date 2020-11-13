@@ -1,9 +1,12 @@
 function [T, Y, debug] = house_simulate(timespan, max_step, height_aperture, width_aperture, area_floor, thickness_floor, thickness_insulation)
     % The `debug` matrix has one row per call to rate_func, with the
-    % columns as specified on Line 107. The first row (all zeros) is
-    % dropped at the end of the function.
-    debug = [0, 0, 0, 0, 0, 0, 0];
-
+    % columns as specified on Line 107. We initialize it here to avoid
+    % performance issues. We'll re-allocate it in rate_fun if we run out
+    % of space, or we'll trim it at the end.
+    debug_idx = 1;
+    debug_max = timespan(2) - timespan(1);
+    debug = NaN(debug_max, 7);
+    
     %% Location Parameters
     % These are currently set to Olin College
     latitude = 42.2930; % deg
@@ -73,11 +76,8 @@ function [T, Y, debug] = house_simulate(timespan, max_step, height_aperture, wid
     % Temperature of the floor starts at the temperature of the ground (which is also absurd)
     U_floor_0 = T_ground_0 * mass_floor * c_floor;
     
-    debug(1, 6) = U_air_internal_0;
-    debug(1, 7) = T_ground_0;
-    
     %% ode45
-    [T, Y_U] = ode45(@rate_func, timespan, [U_air_internal_0, U_floor_0]);
+    [T, Y_U] = ode45(@rate_func, timespan, [U_air_internal_0, U_floor_0], odeset("MaxStep", max_step));
 
     %% Rate function
     function rates = rate_func(time, states)
@@ -104,8 +104,15 @@ function [T, Y, debug] = house_simulate(timespan, max_step, height_aperture, wid
         dUdt_air_to_air = -(T_air_external - T_air_internal) / R_air_to_air;
 
         dUdt_insolation = e_floor * I_insolation * area_insolation;
+        
+        if debug_idx > debug_max
+            fprintf("WARNING: re-allocating debug from %1.0f items to %1.0f items.\n", debug_max, debug_max * 2);
+            debug = [debug; NaN(7, debug_max)];
+            debug_max = debug_max * 2;
+        end
 
-        %debug(end + 1, :) = [time, dUdt_floor_to_air, dUdt_floor_to_ground, dUdt_air_to_air, dUdt_insolation, T_air_external, T_ground];
+        debug(debug_idx, :) = [time, dUdt_floor_to_air, dUdt_floor_to_ground, dUdt_air_to_air, dUdt_insolation, T_air_external, T_ground];
+        debug_idx = debug_idx + 1;
         
         %% Calculate final total stock flows
         dUdt_floor = dUdt_insolation - dUdt_floor_to_air - dUdt_floor_to_ground;
@@ -119,5 +126,5 @@ function [T, Y, debug] = house_simulate(timespan, max_step, height_aperture, wid
     
     Y = [all_air_U / (mass_air_internal * c_air), all_floor_U / (mass_floor * c_floor)];
     
-    debug = debug(2:end, :); % drop the empty first row
+    debug = debug(1:(debug_idx - 1), :); % drop unused rows
 end

@@ -1,6 +1,6 @@
 % [T, Y, debug] = house_simulate(timespan, max_timestep, height_aperture, width_aperture, area_floor, floor_thickness, insulation_thickness)
 % NOTE: unlike house_simulate, floor_thicknesses and insulation_thicknesses should be ranges/vectors.
-function cumulative_errors = house_sweep(timespan, height_aperture, width_aperture, area_floor, floor_thicknesses, insulation_thicknesses, ideal_temp)
+function cumulative_errors = house_sweep(timespan, max_step, height_aperture, width_aperture, area_floor, floor_thicknesses, insulation_thicknesses, ideal_temp)
     %% Setup State
     total_timer_ref = tic;
     timestamp = now();
@@ -45,7 +45,7 @@ function cumulative_errors = house_sweep(timespan, height_aperture, width_apertu
             
             %% Run It
             timer_ref = tic;
-            [T, Y, debug] = house_simulate(timespan, height_aperture, width_aperture, area_floor, floor_thickness, insulation_thickness);
+            [T, Y, debug] = house_simulate(timespan, max_step, height_aperture, width_aperture, area_floor, floor_thickness, insulation_thickness);
             run_time = toc(timer_ref);
             
             num_simulations_completed = num_simulations_completed + 1;
