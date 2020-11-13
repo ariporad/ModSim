@@ -64,11 +64,13 @@ function [T, Y, debug] = house_simulate(timespan, max_timestep, height_aperture,
     R_floor_to_air = 1/(h_air * area_floor);
 
     % Thermal resistance from floor (thermal mass) to ground
-    R_floor_to_ground = thickness_floor / (area_floor * k_floor);
-
+    % Here we assume the insulation between floor and the ground is the
+    % same thickness as the wall insulation
+    R_floor_to_ground = thickness_insulation / (area_floor * k_insulation);
+    
     % Thermal resistance from air inside to air outside
     R_air_to_air = 1/(...
-        1/(2 * (1/(h_air * area_wall)) + thickness_insulation/(area_wall * k_insulation)) + ... 
+        1/(2 * (1/(h_air * (area_wall + area_floor))) + thickness_insulation/((area_wall + area_floor) * k_insulation)) + ... 
         1/(2 * (1/(h_air * area_aperture)) + thickness_insulation/(area_aperture * k_aperture)));
     
     %% Initial State Values
