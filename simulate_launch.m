@@ -7,8 +7,9 @@ end
 function [value, is_terminal, direction] = event_func(~, vals)
     [x, y, ~, ~] = matsplit(vals);
     
-    value = max(abs([x, y])) - 50;
-    direction = -1;
+    value = sqrt(x^2 + y^2) - 50;
+%     value = max(abs([x, y])) - 50;
+    direction = 0;
     is_terminal = 1;
 end
 
