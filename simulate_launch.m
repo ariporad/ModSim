@@ -7,23 +7,30 @@ end
 function [value, is_terminal, direction] = event_func(~, vals)
     [x, y, ~, ~] = matsplit(vals);
     
-    value = sqrt(x^2 + y^2) - 50;
+    value = sqrt(x^2 + y^2) - 6371071;
 %     value = max(abs([x, y])) - 50;
     direction = 0;
     is_terminal = 1;
 end
 
+
 function res = rate_func(~, vals)
+    grav_constant = 6.67 * 10^(-11);
+    mass_earth = 5.97 * 10^24; % kg
+
     [x, y, vx, vy] = matsplit(vals);
     
     dxdt = vx;
     dydt = vy;
     
-    v_vector = [x y];
+    r_vector = [x y];
+    r_distance = norm(r_vector);
     
-    direction = v_vector / norm(v_vector);
+    direction = r_vector / r_distance;
     
-    a_vector = -9.8 * direction; % TODO: -9.8 needs to change
+    a_gravity = -1 * grav_constant * mass_earth / (r_distance ^ 2);
+    
+    a_vector = a_gravity * direction;
     
     res = [dxdt; dydt; a_vector'];
 end
