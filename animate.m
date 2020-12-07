@@ -1,6 +1,6 @@
 radius_earth = 6371071; % m
 radius_orbit = 257495 + radius_earth; % m
-[timestamps, positions, velocities] = simulate_launch([0 1000000], [radius_earth + 1, 0, 0, -7000]);
+[timestamps, positions, velocities] = simulate_launch([0 1000000], [radius_earth + 1, 0, 0, -11000]);
 
 % Make live script support animations
 % https://www.mathworks.com/matlabcentral/answers/271470-does-the-live-editor-support-figure-animations#answer_374998

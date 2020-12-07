@@ -44,17 +44,17 @@ function res = sweep(velocity_range, timespan)
            end
            end 
            
-           if (theta_direction == -1 && thetas(j) <= first_theta && prev_theta > first_theta) || (theta_direction == 1 && thetas(j) >= first_theta && prev_theta < first_theta)
-               break
-           end 
-                  
+           if (theta_direction = -1 && thetas(j) <= first_theta && prev_theta > first_theta) || (theta_direction == 1 && thetas(j) >= first_theta && prev_theta < first_theta
+               
+              
+               
            prev_theta = thetas(j);
            theta_lower_bound = j;
         end
         
         thetas_in_last_orbit = thetas(theta_lower_bound:end);
         
-        polarplot(thetas_in_last_orbit, rhos(theta_lower_bound:end));
+        polarplot(thetas_in_last_orbit, ones(length(thetas_in_last_orbit), 1));
         pax = gca;
         pax.ThetaAxisUnits = 'radians';
     end
