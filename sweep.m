@@ -19,43 +19,46 @@ function res = sweep(velocity_range, timespan)
         
         max_heights(i) = max(rhos);
         
+        % Eccentricity calculation
+        % Disabled at Zach's suggestion
+        
         % Start at the end of theta
         % Store first angle
         % Work backward until a point is found with angle <= the first
         % angle
-   
-        first_theta = thetas(end)
-        theta_direction = sign(thetas(end - 1) - first_theta);
-        assert(theta_direction ~= 0);
-        
-        prev_theta = first_theta;
-        theta_lower_bound = length(thetas);
-        fprintf("Pre-Loop %d\n", length(thetas));
-        for j=(length(thetas) - 1):-1:1
-            % This might do nothing 
-            sign_1 = sign(thetas(j) - prev_theta);
-            sign_2 = sign(thetas(j) - (prev_theta - (theta_direction * 2 * pi)));
-           if (sign_1 ~= theta_direction) && sign_1 ~= 0 
-               fprintf("BREAKING_1! s1: %d s2: %d j: %d theta_direction: %d prev_theta: %d theta: %d\n", sign_1, sign_2, j, theta_direction, prev_theta, thetas(j)); 
-               fprintf("NOT_BREAKING_2! s1: %d s2: %d j: %d theta_direction: %d prev_theta - 2*pi: %d theta: %d\n", sign_1, sign_2, j, theta_direction, prev_theta - (theta_direction * 2 * pi), thetas(j));
-           if (sign_2 ~= theta_direction) && sign_2 ~= 0
-           
-               break
-           end
-           end 
-           
-           if (theta_direction == -1 && thetas(j) <= first_theta && prev_theta > first_theta) || (theta_direction == 1 && thetas(j) >= first_theta && prev_theta < first_theta)
-               break
-           end 
-                  
-           prev_theta = thetas(j);
-           theta_lower_bound = j;
-        end
-        
-        thetas_in_last_orbit = thetas(theta_lower_bound:end);
-        
-        polarplot(thetas_in_last_orbit, rhos(theta_lower_bound:end));
-        pax = gca;
-        pax.ThetaAxisUnits = 'radians';
+    
+%         first_theta = thetas(end)
+%         theta_direction = sign(thetas(end - 1) - first_theta);
+%         assert(theta_direction ~= 0);
+%         
+%         prev_theta = first_theta;
+%         theta_lower_bound = length(thetas);
+%         fprintf("Pre-Loop %d\n", length(thetas));
+%         for j=(length(thetas) - 1):-1:1
+%             % This might do nothing 
+%             sign_1 = sign(thetas(j) - prev_theta);
+%             sign_2 = sign(thetas(j) - (prev_theta - (theta_direction * 2 * pi)));
+%            if (sign_1 ~= theta_direction) && sign_1 ~= 0 
+%                fprintf("BREAKING_1! s1: %d s2: %d j: %d theta_direction: %d prev_theta: %d theta: %d\n", sign_1, sign_2, j, theta_direction, prev_theta, thetas(j)); 
+%                fprintf("NOT_BREAKING_2! s1: %d s2: %d j: %d theta_direction: %d prev_theta - 2*pi: %d theta: %d\n", sign_1, sign_2, j, theta_direction, prev_theta - (theta_direction * 2 * pi), thetas(j));
+%            if (sign_2 ~= theta_direction) && sign_2 ~= 0
+%            
+%                break
+%            end
+%            end 
+%            
+%            if (theta_direction == -1 && thetas(j) <= first_theta && prev_theta > first_theta) || (theta_direction == 1 && thetas(j) >= first_theta && prev_theta < first_theta)
+%                break
+%            end 
+%                   
+%            prev_theta = thetas(j);
+%            theta_lower_bound = j;
+%         end
+%         
+%         thetas_in_last_orbit = thetas(theta_lower_bound:end);
+%         
+%         polarplot(thetas_in_last_orbit, rhos(theta_lower_bound:end));
+%         pax = gca;
+%         pax.ThetaAxisUnits = 'radians';
     end
 end
