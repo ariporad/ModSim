@@ -1,4 +1,4 @@
-function res = sweep(velocity_range, timespan)
+function [max_heights, min_heights] = sweep(velocity_range, timespan)
     % Initial Y velocity from ~[-15000, +15000] against ecentricity and
     % height of final orbit.
     % Caluclate final orbit by projecting points onto a polar coordinate
@@ -9,7 +9,8 @@ function res = sweep(velocity_range, timespan)
     radius_earth = 6371071; % m
     radius_orbit = 257495 + radius_earth; % m
     
-    max_heights = zeros(length(velocity_range), 1);
+    max_heights = zeros(length(velocity_range), 1);    
+    min_heights = zeros(length(velocity_range), 1);
     
     for i=1:length(velocity_range)
         [~, positions_cart, ~] = simulate_launch(timespan, [radius_earth + 1, 0, 0, velocity_range(i)]);
@@ -18,6 +19,7 @@ function res = sweep(velocity_range, timespan)
         thetas = mod(thetas + (2 * pi), 2 * pi);
         
         max_heights(i) = max(rhos);
+        min_heights(i) = min(rhos);
         
         % Eccentricity calculation
         % Disabled at Zach's suggestion
