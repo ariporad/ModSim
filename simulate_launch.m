@@ -1,6 +1,6 @@
 function [timestamps, positions, velocities] = simulate_launch(timespan, initial_values)
     % Because MATLAB is very very stupid, we need to define these variables
-    % in code before `load` sets them, otherwise it doesn't work.
+    % in code ````before `load` sets them, otherwise it doesn't work.
     radius_earth = NaN;
     mass_earth = NaN;
     load("constants.mat", "radius_earth", "mass_earth");
@@ -15,7 +15,7 @@ function [timestamps, positions, velocities] = simulate_launch(timespan, initial
         [~, radius] = cart2pol(x, y);
         
         value = radius - radius_earth;
-        
+         
         direction = 0;
         is_terminal = 1;
     end
